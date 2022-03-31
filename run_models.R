@@ -20,3 +20,18 @@ fit2 <- stan("mixture_ind.stan", data = data_list,
             chains=3, iter=4000,
             pars = c("phi","x","drift","theta","pro_sigma", "obs_sigma"),
             control=list(adapt_delta=0.99, max_treedepth = 15))
+
+# add covariate (e.g. depth)
+data_list = list(y = y, N = n, cov = cumsum(rnorm(n)))
+
+fit3 <- stan("mixture_covariate.stan", data = data_list,
+             chains=1, iter=1000,
+             pars = c("phi","x","drift","theta","pro_sigma", "obs_sigma","beta"),
+             control=list(adapt_delta=0.99, max_treedepth = 15))
+
+# also add example of variational bayes on the 3rd model
+m <- stan_model("mixture_covariate.stan") # compile once
+fit4 <- rstan::vb(m, data = data_list,
+             pars = c("phi","x","drift","theta","pro_sigma", "obs_sigma","beta"))
+
+pars = rstan::extract(fit4)
